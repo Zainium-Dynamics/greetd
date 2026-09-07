@@ -19,7 +19,16 @@ nix = { version = "0.28", features = ["ioctl", "signal", "user", "fs", "mman"] }
 # file in this whole project (this crate's own etc/pam.d/greetd, plus
 # cosmic-greeter, login, sudo, ...) is a classic /etc/pam.d/<service>
 # file, not elevate-pam's own native TOML format.
-elevate-pam = { git = "https://github.com/Zainium-Dynamics/elevate-privilege", features = ["legacy_pamd"] }
+#
+# default-features off: elevate-pam's default set pulls in
+# elevate_crypto (blake3/ed25519-dalek/curve25519-dalek) for nothing --
+# greetd never touches crypto itself, that's the separately-built PAM
+# module .so's job (pam_unix.so etc, dlopen'd at runtime). Pulling that
+# whole dependency graph in here was also crashing curve25519-dalek's
+# build script under this CI's environment. builtin_modules is dropped
+# too for the same reason (statically compiles module logic in, which
+# dynload + the real .so modules already covers).
+elevate-pam = { git = "https://github.com/Zainium-Dynamics/elevate-privilege", default-features = false, features = ["std", "dynload", "syslog", "secure_mem", "fail_delay", "legacy_pamd"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 greetd_ipc = { path = "../greetd_ipc", features = ["tokio-codec"] }
