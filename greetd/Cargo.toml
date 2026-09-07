@@ -1,0 +1,32 @@
+[package]
+name = "greetd"
+version = "0.10.3"
+authors = ["Kenny Levinsen"]
+edition = "2018"
+license = "GPL-3.0-only"
+homepage = "https://kl.wtf/projects/greetd"
+repository = "https://git.sr.ht/~kennylevinsen/greetd/"
+
+[features]
+debug = []
+
+[dependencies]
+nix = { version = "0.28", features = ["ioctl", "signal", "user", "fs", "mman"] }
+# Zainium: elevate-pam's own native Rust API, not the C-ABI/dlopen
+# pam-sys crate -- no runtime libpam.so.0 SONAME/dlopen/$PATH lookup at
+# all anymore, greetd links straight against elevate-pam itself.
+# legacy_pamd (off by default upstream) is required: every PAM service
+# file in this whole project (this crate's own etc/pam.d/greetd, plus
+# cosmic-greeter, login, sudo, ...) is a classic /etc/pam.d/<service>
+# file, not elevate-pam's own native TOML format.
+elevate-pam = { git = "https://github.com/Zainium-Dynamics/elevate-privilege", features = ["legacy_pamd"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+greetd_ipc = { path = "../greetd_ipc", features = ["tokio-codec"] }
+inish = { path = "../inish" }
+libc = "0.2"
+tokio = { version = "1", features = ["net", "sync", "macros", "signal", "rt", "io-util", "time"] }
+getopts = "0.2"
+thiserror = "1.0"
+async-trait = "0.1"
+enquote = "1.1"

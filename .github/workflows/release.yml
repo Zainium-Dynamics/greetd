@@ -1,0 +1,28 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo build --workspace --release
+      - name: Package binaries
+        run: |
+          mkdir -p dist
+          cp target/release/greetd dist/
+          cp target/release/agreety dist/
+          tar -C dist -czf greetd-${{ github.ref_name }}-x86_64-linux.tar.gz .
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: greetd-${{ github.ref_name }}-x86_64-linux.tar.gz
+          generate_release_notes: true
