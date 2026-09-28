@@ -348,10 +348,24 @@ impl Context {
                 Ok(WaitStatus::StillAlive) => break Ok(()),
 
                 // We got an exit, see if it's something we need to clean up.
-                Ok(WaitStatus::Exited(pid, ..)) | Ok(WaitStatus::Signaled(pid, ..)) => {
+                Ok(status @ (WaitStatus::Exited(pid, ..) | WaitStatus::Signaled(pid, ..))) => {
                     let mut inner = self.inner.write().await;
                     let (was_greeter, sesion_length) = match &inner.current {
                         Some(s) if s.child.owns_pid(pid) => {
+                            // Zainium: say how it ended, the session's own
+                            // output went to its VT and is gone by now.
+                            match status {
+                                WaitStatus::Exited(_, code) => eprintln!(
+                                    "{} session (pid {pid}) exited with status {code}",
+                                    if s.is_greeter { "greeter" } else { "user" }
+                                ),
+                                WaitStatus::Signaled(_, sig, core) => eprintln!(
+                                    "{} session (pid {pid}) killed by {sig}{}",
+                                    if s.is_greeter { "greeter" } else { "user" },
+                                    if core { " (core dumped)" } else { "" }
+                                ),
+                                _ => (),
+                            }
                             let res = (s.is_greeter, s.time.elapsed());
                             inner.current = None;
                             res
