@@ -219,10 +219,12 @@ pub async fn main(config: Config) -> Result<(), Error> {
         service
     };
 
-    let u = nix::unistd::User::from_name(&config.file.default_session.user)?.ok_or(format!(
-        "configured default session user '{}' not found",
-        &config.file.default_session.user
-    ))?;
+    let u = crate::zainium_passwd::user_from_name(&config.file.default_session.user)?.ok_or(
+        format!(
+            "configured default session user '{}' not found",
+            &config.file.default_session.user
+        ),
+    )?;
 
     let (listener_path, listener) = Listener::create(u.uid, u.gid)?;
 

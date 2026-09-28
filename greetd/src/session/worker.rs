@@ -2,7 +2,7 @@ use std::{env, ffi::CString, os::unix::net::UnixDatagram};
 
 use nix::{
     sys::wait::waitpid,
-    unistd::{execve, fork, initgroups, setgid, setsid, setuid, ForkResult},
+    unistd::{execve, fork, setgid, setgroups, setsid, setuid, ForkResult},
 };
 use elevate_pam::constants::{PAM_CHANGE_EXPIRED_AUTHTOK, PAM_DELETE_CRED, PAM_ESTABLISH_CRED};
 use serde::{Deserialize, Serialize};
@@ -175,7 +175,8 @@ fn worker(sock: &UnixDatagram) -> Result<(), Error> {
 
     let pam_username = pam.get_user()?;
 
-    let user = nix::unistd::User::from_name(&pam_username)?.ok_or("unable to get user info")?;
+    let user =
+        crate::zainium_passwd::user_from_name(&pam_username)?.ok_or("unable to get user info")?;
 
     // Make this process a session leader.
     setsid().map_err(|e| format!("unable to become session leader: {e}"))?;
@@ -238,11 +239,9 @@ fn worker(sock: &UnixDatagram) -> Result<(), Error> {
     // We are done with PAM, clear variables that the child will not need.
     _ = pam.putenv("XDG_SESSION_CLASS");
 
-    // Prepare some strings in C format that we'll need.
-    let cusername = CString::new(user.name)?;
     let command = if source_profile {
         format!(
-            "[ -f /etc/profile ] && . /etc/profile; [ -f $HOME/.profile ] && . $HOME/.profile; exec {}",
+            "[ -f /overlayer/syshub/etc/profile ] && . /overlayer/syshub/etc/profile; [ -f $HOME/.profile ] && . $HOME/.profile; exec {}",
             cmd.join(" ")
         )
     } else {
@@ -263,8 +262,11 @@ fn worker(sock: &UnixDatagram) -> Result<(), Error> {
             // accidentally using '?'. The process *must* exit from within
             // this match arm.
 
-            // Drop privileges to target user
-            initgroups(&cusername, user.gid).expect("unable to init groups");
+            // Drop privileges to target user. Not initgroups() -- see
+            // zainium_passwd::groups_for_user's doc comment.
+            let zainium_gids = crate::zainium_passwd::groups_for_user(&user.name, user.gid.as_raw())
+                .expect("unable to read groups");
+            setgroups(&zainium_gids).expect("unable to set groups");
             setgid(user.gid).expect("unable to set GID");
             setuid(user.uid).expect("unable to set UID");
 

@@ -6,6 +6,7 @@ mod scrambler;
 mod server;
 mod session;
 mod terminal;
+mod zainium_passwd;
 
 use std::os::unix::{
     io::{FromRawFd, RawFd},
