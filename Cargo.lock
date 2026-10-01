@@ -58,7 +58,7 @@ checksum = "f079e83a288787bcd14a6aea84cee5c87a67c5a3e660c30f557a3d24761b3527"
 [[package]]
 name = "elevate-pam"
 version = "1.0.1"
-source = "git+https://github.com/Zainium-Dynamics/elevate-privilege#57ee7afb373559227a4a8f6e8b3d6e315f69b8f6"
+source = "git+https://github.com/Zainium-Dynamics/elevate-privilege#fa9677a235722396c67714642f07a2c24d9c5378"
 dependencies = [
  "bitflags",
  "elevate-paths",
@@ -74,7 +74,7 @@ dependencies = [
 [[package]]
 name = "elevate-paths"
 version = "1.0.1"
-source = "git+https://github.com/Zainium-Dynamics/elevate-privilege#57ee7afb373559227a4a8f6e8b3d6e315f69b8f6"
+source = "git+https://github.com/Zainium-Dynamics/elevate-privilege#fa9677a235722396c67714642f07a2c24d9c5378"
 dependencies = [
  "serde",
  "toml",
