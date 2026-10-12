@@ -1,12 +1,20 @@
 [Unit]
 Description=Greeter daemon
-After=systemd-user-sessions.service plymouth-quit-wait.service
-After=getty@tty1.service
-Conflicts=getty@tty1.service
+# plymouth hands the screen over to the greeter, so plymouth-quit must not run first
+After=systemd-user-sessions.service plymouth-quit.service cosmic-greeter-daemon.service
+After=getty@tty1.service systemd-tmpfiles-setup.service dbus.socket systemd-logind.service
+Wants=dbus.socket systemd-logind.service cosmic-greeter-daemon.service
+Conflicts=getty@tty1.service plymouth-quit.service
+Before=graphical.target
 
 [Service]
 Type=simple
-ExecStart=greetd
+Environment=LD_PRELOAD=/overlayer/syshub/lib/libsys_resolver.so
+Environment=PATH=/overlayer/syshub/bin:/overlayer/syshub/sbin:/overlayer/syshub/x86_64-zainium-linux-musl/bin:/overlayer/zexlib/union/bin
+# splash stays on screen (plymouth stops drawing) until the compositor shows its first frame
+ExecStartPre=-/overlayer/syshub/bin/plymouth deactivate
+ExecStart=/overlayer/syshub/bin/greetd --config /overlayer/syshub/etc/greetd/config.toml
+ExecStartPost=-/overlayer/syshub/bin/sh -c '(i=0; while [ $$i -lt 75 ] && ! /overlayer/syshub/bin/pgrep -x cosmic-comp >/dev/null; do sleep 0.2; i=$$((i+1)); done; sleep 1; /overlayer/syshub/bin/plymouth quit --retain-splash) >/dev/null 2>&1 &'
 IgnoreSIGPIPE=no
 SendSIGHUP=yes
 TimeoutStopSec=30s
@@ -15,6 +23,11 @@ Restart=always
 RestartSec=1
 StartLimitBurst=5
 StartLimitInterval=30
+TTYPath=/dev/tty1
+# resetting the tty would switch it to text mode and blank the splash
+TTYReset=no
+TTYVTDisallocate=no
 
 [Install]
+WantedBy=graphical.target
 Alias=display-manager.service

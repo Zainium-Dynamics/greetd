@@ -12,6 +12,7 @@ use std::{
 };
 
 #[allow(dead_code)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum KdMode {
     Text,
     Graphics,
@@ -96,6 +97,16 @@ impl Terminal {
             Err(format!("terminal: unable to set kernel display mode: {v}").into())
         } else {
             Ok(())
+        }
+    }
+
+    /// The kernel display mode this VT is currently in.
+    pub fn kd_getmode(&self) -> Result<KdMode, Error> {
+        let mut mode: i32 = 0;
+        match unsafe { ioctl::kd_getmode(self.fd, &mut mode) } {
+            Err(v) => Err(format!("terminal: unable to get kernel display mode: {}", v).into()),
+            Ok(_) if mode == ioctl::KDGRAPHICS => Ok(KdMode::Graphics),
+            Ok(_) => Ok(KdMode::Text),
         }
     }
 

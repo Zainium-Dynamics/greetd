@@ -191,13 +191,20 @@ fn worker(sock: &UnixDatagram) -> Result<(), Error> {
             // Opening our target terminal.
             let target_term = terminal::Terminal::open(&path)?;
 
-            // Set the target VT mode to text for compatibility. Other login managers
-            // set this to graphics, but that disallows start of textual applications,
-            // which greetd aims to support.
-            target_term.kd_setmode(terminal::KdMode::Text)?;
+            // A VT already in graphics mode was handed over by plymouth (`quit --retain-splash`)
+            // with the boot splash still on screen: leave it, so the splash stays up until the
+            // graphical greeter draws its first frame instead of flashing a black text console.
+            // logind puts a VT back into text mode when a graphical session ends, so this
+            // only happens on that boot handoff.
+            if target_term.kd_getmode()? != terminal::KdMode::Graphics {
+                // Set the target VT mode to text for compatibility. Other login managers
+                // set this to graphics, but that disallows start of textual applications,
+                // which greetd aims to support.
+                target_term.kd_setmode(terminal::KdMode::Text)?;
 
-            // Clear TTY so that it will be empty when we switch to it.
-            target_term.term_clear()?;
+                // Clear TTY so that it will be empty when we switch to it.
+                target_term.term_clear()?;
+            }
 
             // A bit more work if a VT switch is required.
             if switch && vt != target_term.vt_get_current()? {
