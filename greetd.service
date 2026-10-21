@@ -11,11 +11,13 @@ Before=graphical.target
 Type=simple
 Environment=LD_PRELOAD=/overlayer/syshub/lib/libsys_resolver.so
 Environment=PATH=/overlayer/syshub/bin:/overlayer/syshub/sbin:/overlayer/syshub/x86_64-zainium-linux-musl/bin:/overlayer/zexlib/union/bin
-# splash stays on screen (plymouth stops drawing) until the greeter window is up;
-# quitting earlier, while cosmic-comp still sets up the GPU on a cold boot, blanks the display
-ExecStartPre=-/overlayer/syshub/bin/plymouth deactivate
+# The splash bar fills up ("zainium-ready", see the theme) and plymouth stops drawing before
+# greetd starts a compositor, so the GPU is free for it; the full splash stays on screen until
+# the compositor draws. Plymouth quits once the greeter or the desktop's wallpaper is up;
+# quitting earlier, while cosmic-comp still sets up the GPU on a cold boot, blanks the display.
+ExecStartPre=-/overlayer/syshub/bin/sh -c '/overlayer/syshub/bin/plymouth --ping || exit 0; /overlayer/syshub/bin/plymouth update --status=zainium-ready; sleep 0.5; /overlayer/syshub/bin/plymouth deactivate'
 ExecStart=/overlayer/syshub/bin/greetd --config /overlayer/syshub/etc/greetd/config.toml
-ExecStartPost=-/overlayer/syshub/bin/sh -c '(i=0; while [ $$i -lt 150 ] && ! /overlayer/syshub/bin/pgrep -x cosmic-greeter >/dev/null; do sleep 0.2; i=$$((i+1)); done; sleep 2; /overlayer/syshub/bin/plymouth quit --retain-splash) >/dev/null 2>&1 &'
+ExecStartPost=-/overlayer/syshub/bin/sh -c '(i=0; while [ $$i -lt 150 ] && ! /overlayer/syshub/bin/pgrep -x cosmic-greeter >/dev/null && ! /overlayer/syshub/bin/pgrep -x cosmic-bg >/dev/null; do sleep 0.2; i=$$((i+1)); done; sleep 1; /overlayer/syshub/bin/plymouth quit --retain-splash) >/dev/null 2>&1 &'
 IgnoreSIGPIPE=no
 SendSIGHUP=yes
 TimeoutStopSec=30s

@@ -58,10 +58,9 @@ checksum = "f079e83a288787bcd14a6aea84cee5c87a67c5a3e660c30f557a3d24761b3527"
 [[package]]
 name = "elevate-pam"
 version = "1.0.1"
-source = "git+https://github.com/Zainium-Dynamics/elevate-privilege#1dcd4e08db3cc621a7cc38bba9d857c3c4c29866"
+source = "git+https://github.com/Zainium-Dynamics/elevate-pam.git?rev=9d99ab2fcf47925644290e0e4326befd94e29408#9d99ab2fcf47925644290e0e4326befd94e29408"
 dependencies = [
  "bitflags",
- "elevate-paths",
  "libc",
  "log",
  "nix 0.29.0",
@@ -69,15 +68,6 @@ dependencies = [
  "serde",
  "toml",
  "zeroize",
-]
-
-[[package]]
-name = "elevate-paths"
-version = "1.0.1"
-source = "git+https://github.com/Zainium-Dynamics/elevate-privilege#1dcd4e08db3cc621a7cc38bba9d857c3c4c29866"
-dependencies = [
- "serde",
- "toml",
 ]
 
 [[package]]
@@ -435,15 +425,8 @@ dependencies = [
  "serde",
  "serde_spanned",
  "toml_datetime",
- "toml_write",
  "winnow",
 ]
-
-[[package]]
-name = "toml_write"
-version = "0.1.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5d99f8c9a7727884afe522e9bd5edbfc91a3312b36a77b5fb8926e4c31a41801"
 
 [[package]]
 name = "unicode-ident"
