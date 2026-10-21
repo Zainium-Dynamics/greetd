@@ -33,7 +33,7 @@ nix = { version = "0.28", features = ["ioctl", "signal", "user", "fs", "mman"] }
 # static-pie, where musl's dlopen() always fails, so the builtins are the
 # only modules it has. It doesn't pull in elevate_crypto; pam_unix falls
 # back to crypt(3) for the $6$ hashes in shadow.
-elevate-pam = { git = "https://github.com/Zainium-Dynamics/elevate-pam.git", rev = "886a1c93c48276ad8600e88ec129c70976138154", default-features = false, features = ["std", "dynload", "syslog", "secure_mem", "fail_delay", "legacy_pamd", "builtin_modules"] }
+elevate-pam = { git = "https://github.com/Zainium-Dynamics/elevate-pam.git", rev = "9d99ab2fcf47925644290e0e4326befd94e29408", default-features = false, features = ["std", "dynload", "syslog", "secure_mem", "fail_delay", "legacy_pamd", "builtin_modules"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 greetd_ipc = { path = "../greetd_ipc", features = ["tokio-codec"] }
